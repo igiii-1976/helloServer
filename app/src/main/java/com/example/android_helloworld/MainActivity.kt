@@ -14,35 +14,40 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.android_helloworld.ui.theme.Android_helloworldTheme
 import java.io.IOException
 import android.util.Log
+import fi.iki.elonen.NanoHTTPD
 
 class MainActivity : ComponentActivity() {
-
     // reference to our server
-    private var server: helloServer? = null
+    private var server: Server? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         // Start the server here
-        server = helloServer(8080)
-        try {
-            server?.start()
-            Log.i("MainActivity", "Server started on port 8080")
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
+        server = Server(this, 8080)
+        Thread {
+            try {
+                server?.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false)
+                Log.i("MainActivity", "Server started on port 8080")
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+        }.start()
+
 
         setContent {
             Android_helloworldTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                androidx.compose.foundation.layout.Box(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    contentAlignment = androidx.compose.ui.Alignment.Center
+                ) {
+                    Text(text = "Android Server is running...")
                 }
             }
         }
+
     }
 
     override fun onDestroy() {
